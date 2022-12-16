@@ -1,0 +1,68 @@
+*
+{
+    box-sizing: border-box;
+}
+    body
+{
+    margin: 0px;
+    padding: 0px;
+    font-family: monospace;
+}
+
+.content
+{
+    margin: 0 auto;
+    text-align: center;
+    padding: 1%;
+    max-width: 1200px;
+}
+
+.content-box
+{
+    float: left;
+    margin: 0 auto;
+    text-align: center;
+}
+table
+{
+   float: left;
+}
+.joystick-box
+{
+    float: right;
+    margin: 0 auto;
+    text-align: center;
+}
+.row
+{
+    float: right;
+    display: inline-flex;
+    clear: both;
+}
+.columnLateral
+{
+    width: 15%;
+    min-width: 460px;
+    height: auto;
+    width: 10%;
+    margin:0 auto;
+}
+.columnCentral
+{
+    width: 70%;
+    min-width: 300px;
+}
+#joy2Div
+{
+    width:200px;
+    height:200px;
+    margin:50px;
+}
+#joystick
+{
+    border: 1px solid #FF0000;
+}
+#joystick2
+{
+    border: 1px solid #0000FF;
+}

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title> Beer Racer </title>
+
+    <meta charset="utf-8">
+    <script src="axios.min.js"></script>
+    <script src="jquery.min.js"></script>
+    <script src="jquery-ui.min.js"></script>
+    <link href="tabulator.min.css" rel="stylesheet">
+    <script type="text/javascript" src="tabulator.min.js"></script>
+    <script src="joy.js"></script>
+
+    <link href="styles.css" rel="stylesheet">
+
+
+
+</head>
+
+<body>
+    <div class="content">
+        <div class="content-box">
+            
+                    <h1>Settings</h1>
+                    <input type="button" onclick="updateMode()" value="Change mode">
+                    <input type="button" onclick="startCar()" value="Start Car">
+                    <input type="button" onclick="stopCar()" value="Stop Car">
+                    <div id="carState"></div>
+                    <div id="wsupdata"></div>
+            <div id="table"></div>
+        </div>
+    <div class="joystick-box">
+            <h2>JoyStick</h2>
+            <div class="row">
+                <div class="columnLateral">
+                    <div id="joy1Div" style="width:200px;height:200px;margin:50px"></div>
+                </div>
+            </div>
+            <div class="joy-cords">
+                X :<input id="joy1X" type="text" /></br>
+                Y :<input id="joy1Y" type="text" />
+            </div>
+        </div>
+        
+    
+        
+    </div>
+    
+    
+
+
+    <script type="text/javascript">
+
+        const socket = new WebSocket('ws://192.168.1.71:8080/chat');
+        //Listen for messages
+        socket.addEventListener('open', function(event) {
+            //Sending a message to the web socket server...
+            socket.send('Hello Server!');
+        });
+        //Listen for messages
+        socket.addEventListener('message', function(message) {
+            console.log('Message from server', message.data);
+            //getData();
+            //updateData();
+            document.getElementById("wsupdata").innerHTML = message.data;
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+        setInterval(getData, 100);
+        }, false);
+
+        //import {TabulatorFull as Tabulator} from 'tabulator-tables';
+        
+        var table = new Tabulator("#table", {
+            layout: "fitDataFill",
+            height: "311px",
+            columns: [{
+                title: "mode",
+                field: "mode"
+            }, {
+                title: "Beers",
+                field: "beer"
+            }, {
+                title: "Distance",
+                field: "distance"
+            }, {
+                title: "JoyX",
+                field: "cords.joyX"
+            }, {
+                title: "JoyY",
+                field: "cords.joyY"
+            }],
+
+        });
+        function setTable(data) {
+            table.setData(data);
+        }
+
+        function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+        //henter data fra server. Almindelig get.
+        async function getData() {
+            //Example of getting data from a restendpoint... response contains data
+            axios.get('http://192.168.1.71:8080')
+                .then(response => {
+                    setTable(response.data);
+                }).catch(error => alert('Try again'));
+            }
+        
+        
+        var carON = 0;
+        function startCar()
+        {
+            if (carON == 0)
+            {
+                carON = 1;
+                document.getElementById("carState").innerHTML = "Car started";
+                handleInterval = setInterval(handleCar2, 66);
+            }
+            else
+            {
+                document.getElementById("carState").innerHTML = "Already On";
+            }
+        }
+
+        function stopCar()
+        {
+            clearInterval(handleInterval);
+            carON=0;
+            stopCount = 0;
+            document.getElementById("carState").innerHTML = "Car stopped";
+            idnumber = 1;
+            var url = 'http://192.168.1.71:8080/' + idnumber;
+            axios.put(url, {
+            "joyX": 0,
+            "joyY": 0,
+            })
+            .then(response => {} ).catch(error => alert('Try again'));
+        }
+      
+        var stopCount = 0;
+        async function handleCar2()
+        {
+            if (carON==0)
+            {
+                stopCar();    
+                return;
+            }
+
+            updateData();
+
+            if(joy1X.value == 0 && joy1X.value == 0)
+            {
+                stopCount++;
+                if (stopCount > 100)
+                {
+                    stopCar();
+                    return;
+                }
+            }
+            else
+            {
+                stopCount = 0;
+            }
+        }
+
+    async function handleCar() 
+    {
+        if (carON==0)
+        {return}
+
+        if (joy1X.value == 0 && joy1X.value == 0)
+        {
+            updateData();
+            let count = 0;
+            while((joy1X.value == 0) && (joy1X.value == 0) && (count < 10000))
+            {
+                getData();
+                await sleep(50);
+                count++;
+            }
+
+            if (joy1X.value == 0 && joy1X.value == 0)
+            {
+                carON=0;
+                document.getElementById("carState").innerHTML = "Car stopped";
+                updateData();
+                return;
+            }
+            else
+            {
+                updateData();
+            }
+        }
+        else
+        {  
+          updateData();
+        }
+
+        setTimeout(handleCar, "50");
+    }
+
+        function updateData(){
+            idnumber = 1;
+            var url = 'http://192.168.1.71:8080/' + idnumber;
+            axios.put(url, {
+                    "joyX": Number((document.getElementById("joy1X").value)),
+                    "joyY": Number(document.getElementById("joy1Y").value),
+                })
+                .then(response => {} ).catch(error => alert('Try again'));
+
+        }
+
+
+        function updateMode() {
+            //Example of getting data from a restendpoint... response contains data
+            var url = 'http://192.168.1.71:8080';
+            axios.put(url)
+                .then(response => {}).catch(error => alert('Try again'));
+            }
+       
+
+    </script>
+		<!-- Example of two JoyStick integrated in the page structure -->
+<script type="text/javascript">
+// Create JoyStick object into the DIV 'joy1Div'
+//var Joy1 = new JoyStick('joy1Div');
+
+
+var joy1X = document.getElementById("joy1X");
+var joy1Y = document.getElementById("joy1Y");
+
+
+// Create JoyStick object into the DIV 'joy1Div'
+var Joy1 = new JoyStick('joy1Div', {}, function(stickData) {
+    joy1X.value = Math.ceil(stickData.x/10);
+    joy1Y.value = Math.ceil(stickData.y/10);
+});
+
+		</script>
+
+</body>
+
+</html>
